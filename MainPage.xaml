@@ -10,65 +10,232 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Column="0" Background="#191C25" Padding="20">
-            <TextBlock Text="STEAMX" FontSize="30" FontWeight="Bold"
-                       Foreground="#8297FF" Margin="0,15,0,35"/>
+        <!-- SIDEBAR -->
+
+        <StackPanel Grid.Column="0"
+                    Background="#191C25"
+                    Padding="20">
+
+            <TextBlock Text="STEAMX"
+                       FontSize="30"
+                       FontWeight="Bold"
+                       Foreground="#8297FF"
+                       Margin="0,15,0,35"/>
+
             <Button Content="Home" Margin="0,5"/>
             <Button Content="Store" Margin="0,5"/>
             <Button Content="Library" Margin="0,5"/>
             <Button Content="Friends" Margin="0,5"/>
             <Button Content="Achievements" Margin="0,5"/>
             <Button Content="Settings" Margin="0,5"/>
+
         </StackPanel>
 
+        <!-- MAIN CONTENT -->
+
         <Grid Grid.Column="1" Margin="35">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="Steam Store" FontSize="36"
-                       FontWeight="Bold" Foreground="White" Margin="0,0,0,20"/>
+            <!-- STORE VIEW -->
 
-            <Grid Grid.Row="1" Margin="0,0,0,15">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="130"/>
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="SearchBox" PlaceholderText="Search games..."
-                         FontSize="18" Height="50"/>
-                <Button x:Name="SearchButton" Grid.Column="1" Content="SEARCH"
-                        Height="50" Click="SearchButton_Click"/>
+            <Grid x:Name="StoreView">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Text="Steam Store"
+                           FontSize="36"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           Margin="0,0,0,20"/>
+
+                <Grid Grid.Row="1" Margin="0,0,0,15">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="130"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox x:Name="SearchBox"
+                             PlaceholderText="Search games..."
+                             FontSize="18"
+                             Height="50"/>
+
+                    <Button x:Name="SearchButton"
+                            Grid.Column="1"
+                            Content="SEARCH"
+                            Height="50"
+                            Click="SearchButton_Click"/>
+
+                </Grid>
+
+                <TextBlock x:Name="StatusText"
+                           Grid.Row="2"
+                           Text="Search the Steam catalog."
+                           Foreground="#A5A9B5"
+                           Margin="0,0,0,15"/>
+
+                <ListView x:Name="SearchResultsList"
+                          Grid.Row="3"
+                          SelectionMode="Single"
+                          SelectionChanged="SearchResultsList_SelectionChanged"
+                          Background="Transparent"
+                          IsTabStop="True">
+
+                    <ListView.ItemTemplate>
+
+                        <DataTemplate>
+
+                            <Grid Padding="10"
+                                  Margin="0,4"
+                                  Background="#202530">
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="125"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Image Source="{Binding Artwork}"
+                                       Width="110"
+                                       Height="65"
+                                       Stretch="UniformToFill"/>
+
+                                <StackPanel Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Margin="15,0">
+
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="19"
+                                               Foreground="White"
+                                               TextWrapping="Wrap"/>
+
+                                    <TextBlock Text="{Binding Price}"
+                                               FontSize="14"
+                                               Foreground="#8297FF"
+                                               Margin="0,5,0,0"/>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </DataTemplate>
+
+                    </ListView.ItemTemplate>
+
+                </ListView>
+
             </Grid>
 
-            <TextBlock x:Name="StatusText" Grid.Row="2"
-                       Text="Search the Steam catalog."
-                       Foreground="#A5A9B5" Margin="0,0,0,15"/>
+            <!-- GAME DETAILS VIEW -->
 
-            <ListView x:Name="SearchResultsList" Grid.Row="3"
-                      SelectionMode="Single" Background="Transparent">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Padding="10" Margin="0,4" Background="#202530">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="125"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Image Source="{Binding Artwork}" Width="110"
-                                   Height="65" Stretch="UniformToFill"/>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center"
-                                        Margin="15,0">
-                                <TextBlock Text="{Binding Name}" FontSize="19"
-                                           Foreground="White" TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding Price}" FontSize="14"
-                                           Foreground="#8297FF" Margin="0,5,0,0"/>
-                            </StackPanel>
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+            <Grid x:Name="DetailsView"
+                  Visibility="Collapsed"
+                  Background="#101218">
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+                    <StackPanel Spacing="15">
+
+                        <Button Content="&#xE72B; BACK TO STORE"
+                                FontFamily="Segoe MDL2 Assets"
+                                HorizontalAlignment="Left"
+                                Click="BackButton_Click"/>
+
+                        <Image x:Name="DetailsArtwork"
+                               Height="270"
+                               Stretch="UniformToFill"
+                               HorizontalAlignment="Stretch"/>
+
+                        <TextBlock x:Name="DetailsName"
+                                   FontSize="34"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   TextWrapping="Wrap"/>
+
+                        <TextBlock x:Name="DetailsPrice"
+                                   FontSize="23"
+                                   FontWeight="Bold"
+                                   Foreground="#8297FF"/>
+
+                        <TextBlock Text="ABOUT THIS GAME"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   Margin="0,15,0,0"/>
+
+                        <TextBlock x:Name="DetailsDescription"
+                                   FontSize="16"
+                                   Foreground="#C4C8D2"
+                                   TextWrapping="WrapWholeWords"/>
+
+                        <TextBlock Text="GAME INFORMATION"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   Margin="0,15,0,0"/>
+
+                        <TextBlock x:Name="DetailsDeveloper"
+                                   Foreground="#C4C8D2"
+                                   TextWrapping="Wrap"/>
+
+                        <TextBlock x:Name="DetailsPublisher"
+                                   Foreground="#C4C8D2"
+                                   TextWrapping="Wrap"/>
+
+                        <TextBlock x:Name="DetailsReleaseDate"
+                                   Foreground="#C4C8D2"
+                                   TextWrapping="Wrap"/>
+
+                        <TextBlock Text="SCREENSHOTS"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   Margin="0,15,0,0"/>
+
+                        <ScrollViewer HorizontalScrollMode="Enabled"
+                                      HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollMode="Disabled"
+                                      VerticalScrollBarVisibility="Disabled">
+
+                            <ItemsControl x:Name="ScreenshotsList">
+
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding}"
+                                               Width="300"
+                                               Height="170"
+                                               Margin="0,0,12,15"
+                                               Stretch="UniformToFill"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+
+                            </ItemsControl>
+
+                        </ScrollViewer>
+
+                        <TextBlock x:Name="DetailsStatus"
+                                   Foreground="#A5A9B5"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,25"/>
+
+                    </StackPanel>
+
+                </ScrollViewer>
+
+            </Grid>
+
         </Grid>
+
     </Grid>
+
 </Page>
