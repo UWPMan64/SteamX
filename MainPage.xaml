@@ -1,0 +1,74 @@
+<Page
+    x:Class="SteamX.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="#101218">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Background="#191C25" Padding="20">
+            <TextBlock Text="STEAMX" FontSize="30" FontWeight="Bold"
+                       Foreground="#8297FF" Margin="0,15,0,35"/>
+            <Button Content="Home" Margin="0,5"/>
+            <Button Content="Store" Margin="0,5"/>
+            <Button Content="Library" Margin="0,5"/>
+            <Button Content="Friends" Margin="0,5"/>
+            <Button Content="Achievements" Margin="0,5"/>
+            <Button Content="Settings" Margin="0,5"/>
+        </StackPanel>
+
+        <Grid Grid.Column="1" Margin="35">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Steam Store" FontSize="36"
+                       FontWeight="Bold" Foreground="White" Margin="0,0,0,20"/>
+
+            <Grid Grid.Row="1" Margin="0,0,0,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="130"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="SearchBox" PlaceholderText="Search games..."
+                         FontSize="18" Height="50"/>
+                <Button x:Name="SearchButton" Grid.Column="1" Content="SEARCH"
+                        Height="50" Click="SearchButton_Click"/>
+            </Grid>
+
+            <TextBlock x:Name="StatusText" Grid.Row="2"
+                       Text="Search the Steam catalog."
+                       Foreground="#A5A9B5" Margin="0,0,0,15"/>
+
+            <ListView x:Name="SearchResultsList" Grid.Row="3"
+                      SelectionMode="Single" Background="Transparent">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="10" Margin="0,4" Background="#202530">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="125"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Image Source="{Binding Artwork}" Width="110"
+                                   Height="65" Stretch="UniformToFill"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center"
+                                        Margin="15,0">
+                                <TextBlock Text="{Binding Name}" FontSize="19"
+                                           Foreground="White" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Price}" FontSize="14"
+                                           Foreground="#8297FF" Margin="0,5,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </Grid>
+</Page>
