@@ -8,7 +8,6 @@ using SteamX.Models;
 
 namespace SteamX.Services
 {
-    // Uses an undocumented Steam Store endpoint. It may change or be rate-limited.
     public class SteamStoreService
     {
         private static readonly HttpClient Client = new HttpClient();
@@ -28,10 +27,12 @@ namespace SteamX.Services
             using (var response = await Client.GetAsync(new Uri(url)))
             {
                 response.EnsureSuccessStatusCode();
+
                 string json = await response.Content.ReadAsStringAsync();
                 JsonObject root = JsonObject.Parse(json);
 
                 IJsonValue itemsValue;
+
                 if (!root.TryGetValue("items", out itemsValue) ||
                     itemsValue.ValueType != JsonValueType.Array)
                     return games;
@@ -42,7 +43,9 @@ namespace SteamX.Services
                         continue;
 
                     JsonObject item = value.GetObject();
+
                     string imageUrl = ReadString(item, "tiny_image");
+
                     var game = new Game
                     {
                         AppId = ReadInt(item, "id"),
@@ -55,11 +58,11 @@ namespace SteamX.Services
                     {
                         try
                         {
-                            game.Artwork = new BitmapImage(new Uri(imageUrl));
+                            game.Artwork = new BitmapImage(
+                                new Uri(imageUrl));
                         }
                         catch
                         {
-                            // Artwork is optional; keep the game result.
                         }
                     }
 
@@ -70,9 +73,153 @@ namespace SteamX.Services
             return games;
         }
 
+        public async Task<Game> GetGameDetailsAsync(int appId)
+        {
+            string url =
+                "https://store.steampowered.com/api/appdetails" +
+                "?appids=" + appId +
+                "&l=english&cc=us";
+
+            using (var response = await Client.GetAsync(new Uri(url)))
+            {
+                response.EnsureSuccessStatusCode();
+
+                string json = await response.Content.ReadAsStringAsync();
+                JsonObject root = JsonObject.Parse(json);
+
+                IJsonValue appValue;
+
+                if (!root.TryGetValue(appId.ToString(), out appValue) ||
+                    appValue.ValueType != JsonValueType.Object)
+                    return null;
+
+                JsonObject appObject = appValue.GetObject();
+
+                IJsonValue successValue;
+
+                if (!appObject.TryGetValue("success", out successValue) ||
+                    successValue.ValueType != JsonValueType.Boolean ||
+                    !successValue.GetBoolean())
+                    return null;
+
+                IJsonValue dataValue;
+
+                if (!appObject.TryGetValue("data", out dataValue) ||
+                    dataValue.ValueType != JsonValueType.Object)
+                    return null;
+
+                JsonObject data = dataValue.GetObject();
+
+                var game = new Game
+                {
+                    AppId = appId,
+                    Name = ReadString(data, "name"),
+                    Description = ReadString(data, "short_description"),
+                    Developers = ReadStringArray(data, "developers"),
+                    Publishers = ReadStringArray(data, "publishers"),
+                    ReleaseDate = ReadReleaseDate(data),
+                    HeaderImageUrl = ReadString(data, "header_image"),
+                    Price = ReadDetailedPrice(data)
+                };
+
+                if (!string.IsNullOrWhiteSpace(game.HeaderImageUrl))
+                {
+                    game.HeaderArtwork = new BitmapImage(
+                        new Uri(game.HeaderImageUrl));
+                }
+
+                LoadScreenshots(data, game);
+
+                return game;
+            }
+        }
+
+        private static void LoadScreenshots(JsonObject data, Game game)
+        {
+            IJsonValue value;
+
+            if (!data.TryGetValue("screenshots", out value) ||
+                value.ValueType != JsonValueType.Array)
+                return;
+
+            foreach (IJsonValue screenshotValue in value.GetArray())
+            {
+                if (screenshotValue.ValueType != JsonValueType.Object)
+                    continue;
+
+                JsonObject screenshot = screenshotValue.GetObject();
+
+                string imageUrl = ReadString(screenshot, "path_thumbnail");
+
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                    imageUrl = ReadString(screenshot, "path_full");
+
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                    continue;
+
+                try
+                {
+                    game.Screenshots.Add(
+                        new BitmapImage(new Uri(imageUrl)));
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private static string ReadDetailedPrice(JsonObject data)
+        {
+            IJsonValue value;
+
+            if (!data.TryGetValue("price_overview", out value) ||
+                value.ValueType != JsonValueType.Object)
+                return "Price unavailable";
+
+            return ReadString(value.GetObject(), "final_formatted");
+        }
+
+        private static string ReadReleaseDate(JsonObject data)
+        {
+            IJsonValue value;
+
+            if (!data.TryGetValue("release_date", out value) ||
+                value.ValueType != JsonValueType.Object)
+                return "Release date unavailable";
+
+            string date = ReadString(value.GetObject(), "date");
+
+            return string.IsNullOrWhiteSpace(date)
+                ? "Release date unavailable"
+                : date;
+        }
+
+        private static string ReadStringArray(
+            JsonObject obj, string key)
+        {
+            IJsonValue value;
+
+            if (!obj.TryGetValue(key, out value) ||
+                value.ValueType != JsonValueType.Array)
+                return "Unknown";
+
+            var names = new List<string>();
+
+            foreach (IJsonValue item in value.GetArray())
+            {
+                if (item.ValueType == JsonValueType.String)
+                    names.Add(item.GetString());
+            }
+
+            return names.Count == 0
+                ? "Unknown"
+                : string.Join(", ", names);
+        }
+
         private static int ReadInt(JsonObject obj, string key)
         {
             IJsonValue value;
+
             if (obj.TryGetValue(key, out value) &&
                 value.ValueType == JsonValueType.Number)
                 return (int)value.GetNumber();
@@ -83,6 +230,7 @@ namespace SteamX.Services
         private static string ReadString(JsonObject obj, string key)
         {
             IJsonValue value;
+
             if (obj.TryGetValue(key, out value) &&
                 value.ValueType == JsonValueType.String)
                 return value.GetString();
@@ -92,17 +240,18 @@ namespace SteamX.Services
 
         private static string ReadPrice(JsonObject item)
         {
-            IJsonValue priceValue;
-            if (!item.TryGetValue("price", out priceValue) ||
-                priceValue.ValueType != JsonValueType.Object)
+            IJsonValue value;
+
+            if (!item.TryGetValue("price", out value) ||
+                value.ValueType != JsonValueType.Object)
                 return "Price unavailable";
 
-            JsonObject priceObject = priceValue.GetObject();
-            string formatted = ReadString(priceObject, "final_formatted");
+            string price = ReadString(
+                value.GetObject(), "final_formatted");
 
-            return string.IsNullOrWhiteSpace(formatted)
+            return string.IsNullOrWhiteSpace(price)
                 ? "Price unavailable"
-                : formatted;
+                : price;
         }
     }
 }
